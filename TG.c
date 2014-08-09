@@ -164,3 +164,9 @@ void TG_Quit()
 {
 	SDL_Quit();
 }
+
+void TG_FreeSurface(TG_Surface * s)
+{
+	SDL_FreeSurface(s->sdl);
+	free(s);
+}

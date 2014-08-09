@@ -54,4 +54,6 @@ void TG_Draw();
 
 uint8_t TG_GetMouseDown();
 
+void TG_FreeSurface(TG_Surface * s);
+
 #endif

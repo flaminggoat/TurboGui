@@ -1,6 +1,5 @@
 #include <stdint.h>
 #include <stdio.h>
-#include <SDL.h>
 
 #include "TG.h"
 #include "TG_Button.h"
@@ -8,15 +7,28 @@
 TG_Surface * screen;
 TG_Button * button;
 
-int main(int argc, char* args[])
+void quit(int status)
+{
+	TG_DestroyButton(button);
+	TG_Quit();
+	exit(status);
+}
+
+void init(void)
 {
 	printf("TurboGui\n");
 	
-	
+	//Initialise TurboGui
 	if((screen = TG_Init()) == NULL)
-		return 1;
+		quit(1);
 	
 	button = TG_CreateTextButton(10,10,50,50, "Hello", 0xFFFF00);
+	
+}
+
+int main(int argc, char* args[])
+{
+	init();
 	
 	for(;;)
 	{
@@ -31,7 +43,7 @@ int main(int argc, char* args[])
 		TG_Delay(20);
 	}
 	
-	TG_Quit();
+	quit(0);
 
 	return 0;
 }

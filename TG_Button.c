@@ -98,3 +98,10 @@ void TG_DrawButton(TG_Button * button, TG_Surface * surface)
 	TG_DrawSurface(button->surface, surface, NULL, button->rect.x,
 		button->rect.y);
 }
+
+void TG_DestroyButton(TG_Button * b)
+{
+	TG_FreeSurface(b->surface);
+	free(b->text);
+	free(b);
+}
