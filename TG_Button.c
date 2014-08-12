@@ -8,10 +8,9 @@
 
 #include "TG.h"
 #include "TG_Button.h"
-//#include "font.h"
-//#include "util.h"
+#include "TG_Text.h"
 
-TG_Button * TG_CreateTextButton(int16_t x, int16_t y, int16_t w,
+TG_Button * TG_CreateTextButton(TG_Font * font, int16_t x, int16_t y, int16_t w,
 	int16_t h, uint8_t * text, uint32_t color)
 {
 	TG_Button * button = (TG_Button*)malloc(sizeof(*button));
@@ -21,6 +20,7 @@ TG_Button * TG_CreateTextButton(int16_t x, int16_t y, int16_t w,
 	button->rect.w = w;
 	button->rect.h = h;
 	
+	button->font = font;
 	button->status = TG_BUTTON_RELEASED;
 	button->color = color;
 	
@@ -30,15 +30,15 @@ TG_Button * TG_CreateTextButton(int16_t x, int16_t y, int16_t w,
 	strcpy(button->text, text);
 	
 	//Centre the text in the button
-	//button->textX = (width - textWidth(text))/2;
-	//button->textY = (height - CHAR_HEIGHT)/2;
+	button->textPos.x = (w - TG_TextWidth(font, text))/2;
+	//button->textPos.x = 0;
+	button->textPos.y = (h - font->charHeight)/2;
 	
 	//Draw the button background
 	TG_DrawRect(button->surface, &((TG_Rect){0,0,button->rect.w, button->rect.h }), color);
 	
 	//Draw the text onto the button surface
-	//TODO: Draw text
-	//drawText(button->surface, button->textX, button->textY, text, 0, 0);
+	TG_DrawText(button->surface, font, button->textPos.x, button->textPos.y, text, 0, 0);
 
 	return button;
 }
@@ -80,8 +80,7 @@ void TG_DrawButton(TG_Button * button, TG_Surface * surface)
 			TG_LightenColor(button->color, -50));
 	
 		//Draw the text onto the button surface
-		//drawText(button->surface, button->textX, button->textY,
-			//button->text, 0, 0);
+		TG_DrawText(button->surface, button->font, button->textPos.x, button->textPos.y, button->text, 0, 0);
 	}
 	else if(button->status == TG_BUTTON_JUST_RELEASED)
 	{
@@ -91,8 +90,8 @@ void TG_DrawButton(TG_Button * button, TG_Surface * surface)
 			button->color);
 	
 		//Draw the text onto the button surface
-		//drawText(button->surface, button->textX, button->textY,
-			//button->text, 0, 0);
+		TG_DrawText(button->surface, button->font, button->textPos.x, button->textPos.y, button->text, 0, 0);
+
 	}
 	
 	TG_DrawSurface(button->surface, surface, NULL, button->rect.x,

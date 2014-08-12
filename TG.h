@@ -28,6 +28,8 @@ typedef struct
 
 typedef struct
 {
+	uint16_t width, height;
+	uint32_t * pixels;
 	SDL_Surface * sdl;
 }TG_Surface;
 
@@ -55,5 +57,7 @@ void TG_Draw();
 uint8_t TG_GetMouseDown();
 
 void TG_FreeSurface(TG_Surface * s);
+
+TG_Surface * TG_LoadBmp(char * location);
 
 #endif

@@ -29,6 +29,9 @@ TG_Surface * TG_Init(){
 	
 	//Get window surface
     s->sdl = SDL_GetWindowSurface( TG_SDL_Screen );
+    s->pixels = s->sdl->pixels;
+    s->width = s->sdl->w;
+    s->height = s->sdl->h;
     
     return s;
 }
@@ -50,31 +53,69 @@ void TG_DrawRect(TG_Surface * s, TG_Rect * r, uint32_t color)
 	SDL_FillRect(s->sdl, &sRect, color);
 }
 
-void TG_DrawSurface(TG_Surface * src, TG_Surface * dest, TG_Rect * srcRect, int16_t x, int16_t y)
+void TG_DrawSurface(TG_Surface * src, TG_Surface * dest,
+	TG_Rect * srcRect, int16_t x, int16_t y)
 {
-	SDL_Rect * pSR = NULL;
-	SDL_Rect sR;
-	SDL_Rect dR;
+	//Set the starting position of the destination pointer
+	uint32_t * destPixel = dest->pixels + (y * dest->width);
 	
+	//area to be copied from the source surface
+	TG_Rect a;
+	
+	//Use the dimensions in srcRect if provided
+	//otherwise use the whole surface
 	if(srcRect != NULL)
 	{
-		sR.x = srcRect->x;
-		sR.y = srcRect->y;
-		sR.w = srcRect->w;
-		sR.h = srcRect->h;
-		pSR = &sR;
+		a.x = srcRect->x;
+		a.y = srcRect->y;
+		a.w = srcRect->w;
+		a.h = srcRect->h;
+	}
+	else
+	{
+		a.x = 0;
+		a.y = 0;
+		a.w = src->width;
+		a.h = src->height;
 	}
 	
-	dR.x = x;
-	dR.y = y;
-		
-	SDL_BlitSurface(src->sdl, pSR, dest->sdl, &dR);
+	//set the starting position of the src pointer	
+	uint32_t * srcPixel = src->pixels + (a.y * src->width) + a.x;
+	
+	uint16_t total = a.w * a.h;
+	uint16_t srcX = a.x;
+	uint16_t destX = x;
+	
+	for(uint16_t i = 0; i < total; i++)
+	{
+			//copy the source pixel to the destination pixel
+			*(destPixel + destX) = *(srcPixel + srcX);
+			
+			//increment the pixel x positions
+			srcX++;
+			destX++;
+			
+			//move to the next row of pixels
+			if(srcX == a.x + a.w)
+			{
+				srcPixel += src->width;
+				destPixel += dest->width;
+				srcX = a.x;
+				destX = x;
+			}
+
+	}
 }
 
 TG_Surface * TG_CreateSurface(uint16_t width, uint16_t height)
 {
-	TG_Surface * t = (TG_Surface*)malloc(sizeof(t));
+	TG_Surface * t = (TG_Surface*)malloc(sizeof(*t));
+	t->width = width;
+	t->height = height;
+	//t->pixels = (uint32_t*)malloc(sizeof(uint32_t) * width * height);
+	
 	t->sdl = SDL_CreateRGBSurface(0, width, height, 32, 0, 0, 0, 0);
+	t->pixels = t->sdl->pixels;
 	return t;
 }
 
@@ -163,6 +204,25 @@ void TG_Delay(uint16_t ms)
 void TG_Quit()
 {
 	SDL_Quit();
+}
+
+TG_Surface * TG_LoadBmp(char * location)
+{
+	SDL_Surface * temp = SDL_LoadBMP(location);
+	if(temp == NULL)
+	{
+		fprintf(stderr, "[ERROR] BMP \"%s\" not loaded.\n", location);
+		return NULL;
+	}
+	
+	TG_Surface * s = (TG_Surface*)malloc(sizeof(*s));
+	s->sdl = SDL_ConvertSurfaceFormat(temp, SDL_PIXELFORMAT_ARGB8888, 0);
+	SDL_FreeSurface(temp);
+	s->pixels = s->sdl->pixels;
+    s->width = s->sdl->w;
+    s->height = s->sdl->h;
+	
+	return s;
 }
 
 void TG_FreeSurface(TG_Surface * s)

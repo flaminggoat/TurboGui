@@ -1,5 +1,5 @@
 #OBJS specifies which files to compile as part of the project
-OBJS = Test.c TG.c TG_Button.c
+OBJS = Test.c TG.c TG_Button.c TG_Text.c
 
 #CC specifies which compiler we're using
 CC = gcc
