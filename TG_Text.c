@@ -11,7 +11,7 @@
 //Font surface
 static TG_Surface * bitmap;
 
-TG_Font * TG_CreateFont(uint8_t * font, int16_t charWidth, int16_t charHeight)
+TG_Font * TG_CreateFont(uint8_t * font, int16_t rows, int16_t cols)
 {
 	TG_Font * t = (TG_Font*)malloc(sizeof(*t));
 	
@@ -24,17 +24,17 @@ TG_Font * TG_CreateFont(uint8_t * font, int16_t charWidth, int16_t charHeight)
 		return NULL;
 	}
 	
-	t->charWidth = charWidth;
-	t->charHeight = charHeight;
+	t->charWidth = t->surface->width / cols;
+	t->charHeight = t->surface->height / rows;
 	t->charXSpacing = 0;
 	t->charYSpacing = 0;
 	
 	int currentChar = 0;
 	
 	//Loop through each character in the bitmap
-	for(int row=0; row<N_ROWS; row++)
+	for(int row=0; row<rows; row++)
 	{
-		for(int col=0; col<N_COLS; col++)
+		for(int col=0; col<cols; col++)
 		{
 			//Set the location of the character
 			t->chars[currentChar].x = t->charWidth * col;
@@ -42,6 +42,13 @@ TG_Font * TG_CreateFont(uint8_t * font, int16_t charWidth, int16_t charHeight)
 			
 			currentChar++;
 		}
+	}
+	
+	while(currentChar < 256)
+	{
+		t->chars[currentChar].x = 0;
+		t->chars[currentChar].y = 0;
+		currentChar++;
 	}
 	
 	return t;
@@ -77,7 +84,7 @@ uint16_t TG_TextWidth(TG_Font * font, uint8_t * text)
  * Returns 1 if end of string occurs before the given amount of 
  * characters have been drawn, otherwise returns 0.
  */
-uint8_t TG_DrawText(TG_Surface * surface, TG_Font * font, int16_t x, int16_t y, uint8_t * text, int16_t amount, int16_t wrap)
+uint8_t TG_DrawText(TG_Surface * surface, TG_Font * font, int16_t x, int16_t y, uint8_t * text, int16_t amount, int16_t wrap, uint32_t color)
 {
 	//Position on screen
 	TG_Point pos = { x, y };
@@ -120,7 +127,7 @@ uint8_t TG_DrawText(TG_Surface * surface, TG_Font * font, int16_t x, int16_t y, 
 		//Normal character
 		else
 		{
-			TG_DrawChar(surface, font, pos.x, pos.y, *text, 0xFFFFFFFF);
+			TG_DrawChar(surface, font, pos.x, pos.y, *text, color);
 			pos.x += font->charWidth;
 		}
 		
@@ -204,23 +211,23 @@ void TG_DrawChar(TG_Surface * surface, TG_Font * font, int16_t x, int16_t y, uin
 	
 	for(uint16_t i = 0; i < total; i++)
 	{
-			//copy the source pixel to the destination pixel
-			if(*(srcPixel + srcX) != 0xFFFF00FF)
-				//*(destPixel + destX) = *(srcPixel + srcX);
-				*(destPixel + destX) = color;
-				
-			//increment the pixel x positions
-			srcX++;
-			destX++;
+		//copy the source pixel to the destination pixel
+		if(*(srcPixel + srcX) != 0xFFFF00FF)
+			//*(destPixel + destX) = *(srcPixel + srcX);
+			*(destPixel + destX) = color;
 			
-			//move to the next row of pixels
-			if(srcX == cX + font->charWidth)
-			{
-				srcPixel += font->surface->width;
-				destPixel += surface->width;
-				srcX = cX;
-				destX = x;
-			}
+		//increment the pixel x positions
+		srcX++;
+		destX++;
+		
+		//move to the next row of pixels
+		if(srcX == cX + font->charWidth)
+		{
+			srcPixel += font->surface->width;
+			destPixel += surface->width;
+			srcX = cX;
+			destX = x;
+		}
 
 	}
 }

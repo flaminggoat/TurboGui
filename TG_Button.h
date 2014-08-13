@@ -18,7 +18,7 @@ typedef struct
 	TG_Point textPos;
 	TG_Surface * surface;
 	uint8_t status;
-	uint32_t color;
+	uint32_t color, pressedColor, textColor;
 	uint8_t * text;
 	TG_Font * font;
 } TG_Button;
